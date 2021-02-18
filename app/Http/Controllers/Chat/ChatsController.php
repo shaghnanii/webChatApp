@@ -42,7 +42,6 @@ class ChatsController extends Controller
                 [
                     'message' => $request->message,
                     'message_from' => $request->mID,
-                    'message_to' => $request->fID,
                 ]
             );
 

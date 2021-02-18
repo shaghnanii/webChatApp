@@ -9,7 +9,7 @@ class Message extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['message', 'message_from', 'message_to'];
+    protected $fillable = ['message', 'message_from'];
 
     public function conversation(){
         $this->belongsTo(Conversation::class, 'conversation_id');
