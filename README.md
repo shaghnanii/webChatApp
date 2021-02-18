@@ -291,7 +291,7 @@ When a message is broadcasted over the sockets the reciever funciton recieve thi
 
 Files to be considered when working on this project.
 > Important Files
-
+```
 -   app
     -   Events
         -   TestEvent.php
@@ -315,3 +315,4 @@ Files to be considered when working on this project.
         -   chat_view.blade.php
 -   routes
     -   web.php
+```
