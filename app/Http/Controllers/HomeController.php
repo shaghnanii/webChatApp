@@ -32,7 +32,18 @@ class HomeController extends Controller
         // DB::enableQueryLog();
         $conversations = Conversation::where('user_one',auth()->user()->id)
                             ->orWhere('user_two',auth()->user()->id)
-                            ->with(['messages', 'u_two','u_one'])
+                            ->with(['messages' => 
+                                function($query){
+                                    $query->orderBy('id', 'DESC')
+                                    ->first();
+                                },'u_two','u_one'])
+
+                            ->withCount(['messages as unread_count' => 
+                                function($query){
+                                    $query->where('is_seen',0);
+                                }
+                            ])
+                            // ->with('messages')
                             ->get();
         // return $conversations;
         return view('chats.chat_view')->with('conversations', $conversations);

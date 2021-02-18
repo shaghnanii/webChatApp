@@ -25,3 +25,5 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::get('chats', [ChatsController::class, 'showChats']);
 Route::post('chats', [ChatsController::class, 'sendChat']);
+
+Route::post('getMyChat', [ChatsController::class, 'getUserChat']);

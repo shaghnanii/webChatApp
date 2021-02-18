@@ -50,12 +50,18 @@ class ChatsController extends Controller
             $conversations = Conversation::find($request->cID);
 
             $conversations->messages()->save($message);
+
             // We are using the toOthers() which allows us to exclude the current user from the broadcast's recipients.
             broadcast(new TestEvent($user, $message))->toOthers();
 
             return response()->json(['success' => "sent"]);
         }
         
+    }
+
+    public function getUserChat(Request $request){
+        $conversations = Conversation::where('id', $request->convID)->with('messages')->first();
+        return $conversations;
     }
 
 }

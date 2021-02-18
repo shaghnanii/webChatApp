@@ -16,20 +16,32 @@
                     {{-- conversation list starts here --}}
                     <div class="inbox_chat">
 
+                        <?php $msg_count = 0; ?>
                         @if (count($conversations) > 0)
-
                             @foreach ($conversations as $item)
-                                <div class="chat_list active_chat chat_style" id="chat_head" onclick="showThisChat('test')">
+                                <div class="chat_list active_chat chat_style" id="chat_head"
+                                    onclick="showThisChat({{ $item->id }})">
                                     <div class="chat_people">
                                         <div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png"
-                                                alt="sunil"> </div>
+                                                alt="User"> </div>
                                         <div class="chat_ib">
-                                            <h5>{{ $item->u_two->name }}
+                                            <h5>
+                                                @if ($item->u_two->name != Auth::user()->name)
+                                                    {{ $item->u_two->name }}
+                                                @else
+                                                    {{ $item->u_one->name }}
+                                                @endif
                                                 <span class="chat_date">
-                                                    <span class="dot">0</span>
+                                                    <span class="dot" id="countMsg">{{ $item->unread_count }}</span>
                                                 </span>
                                             </h5>
-                                            <p>{{ $item->u_two->email }}</p>
+                                            <p>
+                                                @foreach ($item->messages as $last)
+                                                    @if ($loop->last)
+                                                        {{ $last->message }}
+                                                    @endif
+                                                @endforeach
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -44,42 +56,15 @@
                 </div>
                 <div class="mesgs">
                     <div class="msg_history">
-                        @if (count($conversations) > 0)
-                            {{-- message chats sections here --}}
-                            @foreach ($conversations as $conversation)
-                            <div id="msg_body_section">
-                                @if($loop->first)
-                                @foreach ($conversation->messages as $msg)
-                                        @if ($msg->message_from != Auth::user()->id)
-                                            {{-- message from other person starts here --}}
-                                            <div class="incoming_msg" id="recieved_message">
-                                                <div class="incoming_msg_img"> <img
-                                                        src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
-                                                </div>
-                                                <div class="received_msg">
-                                                    <div class="received_withd_msg">
-                                                        <p> {{ $msg->message }} </p>
-                                                        <span class="time_date"> 11:01 AM | June 9</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {{-- msg from other person ends here --}}
-                                        @else
-                                            {{-- msg by me starts here --}}
-                                            <div class="outgoing_msg">
-                                                <div class="sent_msg">
-                                                    <p>{{ $msg->message }}</p>
-                                                    <span class="time_date"> 11:01 AM | June 9</span>
-                                                </div>
-                                            </div>
-                                            {{-- msg by me ends here --}}
-                                        @endif
-                                @endforeach
-                                @endif
-                                        </div>
-                            @endforeach
-                            {{-- message chats section ends here --}}
-                        @endif
+
+                        {{-- message chats sections here --}}
+                        <div id="msg_body_section">
+
+
+                        </div>
+
+                        {{-- message chats section ends here --}}
+
                     </div>
 
                     {{-- msg send/write section start here --}}
@@ -88,7 +73,7 @@
                             <form id="someid" method="POST">
                                 <input type="text" id="message" placeholder="Write a message...">
                                 <input type="hidden" id="mID" name="mID" value="{{ Auth::user()->id }}" />
-                                <input type="hidden" id="cID" name="cID" value="{{ $item->id }}" />
+                                <input type="hidden" id="cID" name="cID" value="" />
                                 <button type="submit" class="msg_send_btn">
                                     <i class="fa fa-paper-plane-o"></i>
                                 </button>
@@ -104,31 +89,20 @@
 
 
     <script>
-        Echo.private('privateChatChannel')
+        Echo
+            .private('privateChatChannel')
             .listen('TestEvent', (e) => {
                 var array = [];
-                console.log("Fetching messages");
-                console.log(e.message.message);
-                console.log(e.message.message_from);
+                // console.log("Fetching messages");
+                console.log("Message: " + e.message.message);
+                console.log("Message From: " + e.message.message_from);
                 array.push(e.message.message);
                 var content = document.getElementById("recieved_message");
                 var checkUser = e.message.message_from;
 
                 var mID = "{{ Auth::user()->id }}";
 
-                for (var i = 0; i < array.length; i++) {
-                    if (checkUser != mID) {
-                        content.innerHTML +=
-                            ' <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>' +
-                            ' <div class="received_msg">' +
-                            ' <div class="received_withd_msg">' +
-                            ' <p> ' + array[i] + ' </p>' +
-                            ' <span class="time_date"> 11:01 AM    |    June 9</span>' +
-                            ' </div>' +
-                            ' </div>';
-                    }
-
-                }
+                showThisChat(e.message.conversation_id);
             });
 
     </script>
@@ -151,6 +125,8 @@
                     dataType: 'json',
                     success: function(dataResult) {
                         console.log(dataResult);
+                        var tempID = document.getElementById("cID").value;
+                        showThisChat(tempID);
                     }
                 });
             });
@@ -160,8 +136,80 @@
     </script>
 
     <script>
-        function showThisChat(data) {
-            alert(data);
+        function showThisChat(conversation_id) {
+            console.log("resetting chat body for conversation id : " + conversation_id);
+            // settting input filed send message values
+            document.getElementById("cID").value = conversation_id;
+
+
+            var getUpdatedData = '';
+            $.ajax({
+                url: "getMyChat",
+                type: "POST",
+                // async: false,
+                // cache: false,
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    convID: conversation_id
+                },
+                dataType: 'json',
+                success: function(dataResult) {
+                    getUpdatedData = dataResult;
+                    var msgBody = document.getElementById('msg_body_section');
+
+                    var msgTempBody = "";
+
+                    // console.log(messages)
+                    var temp_auth_id = {{ Auth::user()->id }};
+
+                    // console.log(typeof(temp_auth_id))
+
+                    for (var i = 0; i < getUpdatedData.messages.length; i++) {
+                        // console.log("Auth ID: " + temp_auth_id);
+                        // console.log("From ID: " + messages[i].message_from);
+                        const d = new Date(getUpdatedData.messages[i].updated_at);
+                        const ye = new Intl.DateTimeFormat('en', {
+                            year: 'numeric'
+                        }).format(d);
+                        const mo = new Intl.DateTimeFormat('en', {
+                            month: 'short'
+                        }).format(d);
+                        const da = new Intl.DateTimeFormat('en', {
+                            day: '2-digit'
+                        }).format(d);
+
+                        if (getUpdatedData.messages[i].message_from != temp_auth_id) {
+                            msgTempBody += '<div class="incoming_msg" id="recieved_message"> ' +
+                                '    <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" ' +
+                                '            alt="User"> ' +
+                                '    </div> ' +
+                                '    <div class="received_msg"> ' +
+                                '        <div class="received_withd_msg"> ' +
+                                '            <p>' + getUpdatedData.messages[i].message + '</p> ' +
+                                '            <span ' +
+                                '                class="time_date"> ' + `${da} ${mo}, ${ye}` + '  </span> ' +
+                                '        </div> ' +
+                                '    </div> ' +
+                                '</div> ';
+                        } else {
+                            msgTempBody += '<div class="outgoing_msg"> ' +
+                                '    <div class="sent_msg"> ' +
+                                '        <p>' + getUpdatedData.messages[i].message + '</p> ' +
+                                '        <span class="time_date"> ' +
+                                '            ' + `${da} ${mo}, ${ye}` + ' | ' +
+                                '            <span style="color: black"> ' + getUpdatedData.messages[i]
+                                .is_seen + ' </span> ' +
+                                '        </span> ' +
+                                '    </div> ' +
+                                '</div> ';
+                        }
+                    }
+                    msgBody.innerHTML = msgTempBody;
+                }
+            });
+
+
+
         }
 
     </script>
