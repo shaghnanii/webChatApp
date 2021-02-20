@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Chat\Conversation;
+use App\Models\UserActivity\Image;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -45,7 +46,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function conversations(){
-        $this->hasMany(Conversation::class);
+    public function conversations1(){
+        return $this->hasMany(Conversation::class, 'user_one');
     }
+    public function conversations2(){
+        return $this->hasMany(Conversation::class, 'user_two');
+    }
+
 }

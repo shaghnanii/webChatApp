@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Chat\ChatsController;
+use App\Http\Controllers\MorphController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -27,3 +28,6 @@ Route::get('chats', [ChatsController::class, 'showChats']);
 Route::post('chats', [ChatsController::class, 'sendChat']);
 
 Route::post('getMyChat', [ChatsController::class, 'getUserChat']);
+
+
+Route::get('/morph', [MorphController::class, 'index']);

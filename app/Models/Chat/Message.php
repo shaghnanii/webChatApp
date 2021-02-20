@@ -9,9 +9,9 @@ class Message extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['message', 'message_from'];
+    protected $fillable = ['message', 'message_from','conversation_id'];
 
     public function conversation(){
-        $this->belongsTo(Conversation::class, 'conversation_id');
+        return $this->belongsTo(Conversation::class, 'conversation_id');
     }
 }

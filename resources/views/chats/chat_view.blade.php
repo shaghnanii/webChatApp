@@ -32,7 +32,7 @@
                                                     {{ $item->u_one->name }}
                                                 @endif
                                                 <span class="chat_date">
-                                                    <span class="dot" id="countMsg">{{ $item->unread_count }}</span>
+                                                    <span class="dot" id="countMsg">{{ $item->unread_msg_count }}</span>
                                                 </span>
                                             </h5>
                                             <p>
